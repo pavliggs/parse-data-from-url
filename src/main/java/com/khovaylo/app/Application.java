@@ -10,6 +10,10 @@ import org.json.JSONTokener;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -207,20 +211,21 @@ public class Application {
     }
 
     /**
-     * Метод записывает информацию из строки в файл с расширением ".csv" и помещает его в директорию target/classes/..
+     * Метод записывает информацию из строки в файл с расширением ".csv" и помещает его в корень проекта
      */
     public void writeJsonToFile() {
-        String json = getStringJsonOfFullList(100);
-        String dir = Application.class.getResource("/").getFile();
-        OutputStream os = null;
         try {
-            os = new FileOutputStream(dir + "/product_info.csv");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Path path = Paths.get("product_info.csv");
+            if (Files.notExists(path))
+                Files.createFile(path);
+            String json = getStringJsonOfFullList(100);
+            OutputStream os = new FileOutputStream(path.toFile());
+            PrintStream printStream = new PrintStream(os);
+            printStream.println(json);
+            printStream.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
-        PrintStream printStream = new PrintStream(os);
-        printStream.println(json);
-        printStream.close();
     }
 
     public static void main(String[] args) {
